@@ -72,3 +72,129 @@
     </div>
 
     <!-- Active Workout Screen -->
+    <div id="workout-screen" class="hidden">
+        <h2 id="day-title">Workout</h2>
+        <div id="exercise-list"></div>
+    </div>
+
+    <!-- Success Screen -->
+    <div id="success-screen" class="hidden">
+        <h2 style="margin-top:50px;">Workout Saved! 🎉</h2>
+        <p style="text-align:center;">Your lifts have been recorded so you can beat them next time.</p>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        const workouts = {
+            upper: [
+                "Chest Flys", "Dumbbell Press", 
+                "Bicep Curls", "Hammer Curls", 
+                "Triceps Pushdown", "Machine Tricep Dips", 
+                "Lateral Raises", "Shoulder Press", 
+                "Lat Pulldowns", "Seated Cable Rows", 
+                "Wrist Curls", "Shrugs"
+            ],
+            lower: [
+                "Squats", "Leg Extensions", "Calf Raises", 
+                "Romanian Deadlifts", "Abs"
+            ]
+        };
+
+        let currentDay = '';
+        let savedProgress = {};
+
+        tg.CloudStorage.getItem('workoutProgress', function(err, value) {
+            if (!err && value) {
+                try {
+                    savedProgress = JSON.parse(value);
+                } catch(e) {}
+            }
+        });
+
+        // 1. Logic to handle the Native Back Button
+        tg.onEvent('backButtonClicked', function() {
+            tg.BackButton.hide(); // Hide the back button on the home screen
+            tg.MainButton.hide(); // Hide the save button if they cancel
+            
+            // Switch views back to home
+            document.getElementById('workout-screen').classList.add('hidden');
+            document.getElementById('success-screen').classList.add('hidden');
+            document.getElementById('home-screen').classList.remove('hidden');
+        });
+
+        function startDay(day) {
+            currentDay = day;
+            
+            // Toggle view visibility
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('success-screen').classList.add('hidden');
+            document.getElementById('workout-screen').classList.remove('hidden');
+            
+            document.getElementById('day-title').innerText = day === 'upper' ? 'Upper Body Day' : 'Lower Body Day';
+
+            const list = document.getElementById('exercise-list');
+            list.innerHTML = '';
+
+            workouts[day].forEach((ex, index) => {
+                if(!savedProgress[ex]) savedProgress[ex] = { s1w: '', s1r: '', s2w: '', s2r: '' };
+                const data = savedProgress[ex];
+
+                const exDiv = document.createElement('div');
+                exDiv.className = 'exercise';
+                exDiv.innerHTML = `
+                    <h3>${ex}</h3>
+                    <div class="set-row">
+                        <span>Set 1</span>
+                        <div class="set-inputs">
+                            <input type="number" id="ex-${index}-s1w" placeholder="Weight" value="${data.s1w}">
+                            <input type="number" id="ex-${index}-s1r" placeholder="Reps" value="${data.s1r}">
+                        </div>
+                    </div>
+                    <div class="set-row">
+                        <span>Set 2</span>
+                        <div class="set-inputs">
+                            <input type="number" id="ex-${index}-s2w" placeholder="Weight" value="${data.s2w}">
+                            <input type="number" id="ex-${index}-s2r" placeholder="Reps" value="${data.s2r}">
+                        </div>
+                    </div>
+                `;
+                list.appendChild(exDiv);
+            });
+
+            // 2. Show the native Back and Main buttons
+            tg.BackButton.show();
+            tg.MainButton.text = "SAVE & COMPLETE WORKOUT";
+            tg.MainButton.color = "#31b545";
+            tg.MainButton.show();
+        }
+
+        tg.onEvent('mainButtonClicked', function() {
+            tg.HapticFeedback.impactOccurred('heavy');
+            
+            workouts[currentDay].forEach((ex, index) => {
+                savedProgress[ex] = {
+                    s1w: document.getElementById(`ex-${index}-s1w`).value,
+                    s1r: document.getElementById(`ex-${index}-s1r`).value,
+                    s2w: document.getElementById(`ex-${index}-s2w`).value,
+                    s2r: document.getElementById(`ex-${index}-s2r`).value
+                };
+            });
+
+            tg.CloudStorage.setItem('workoutProgress', JSON.stringify(savedProgress), function(err, success) {
+                if(success) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                    tg.MainButton.hide();
+                    
+                    // 3. Keep the back button active and route to the success screen
+                    document.getElementById('workout-screen').classList.add('hidden');
+                    document.getElementById('success-screen').classList.remove('hidden');
+                }
+            });
+        });
+
+        tg.ready();
+    </script>
+</body>
+</html>
