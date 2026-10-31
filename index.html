@@ -3,124 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Web3 Style Workout</title>
-    
-    <!-- Telegram SDK -->
+    <title>Progressive Overload Tracker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- Lottie Web Player for Web3 Animations -->
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--tg-theme-bg-color, #000000);
-            color: var(--tg-theme-text-color, #ffffff);
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
             margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden; /* Prevents scrolling when tapping rapidly */
+            padding: 20px;
+            padding-bottom: 80px;
         }
-
-        /* Web3 Style Interactive Button */
-        .tap-button {
-            background: linear-gradient(135deg, #0088cc, #005580);
-            border-radius: 50%;
-            width: 200px;
-            height: 200px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 30px rgba(0, 136, 204, 0.4);
-            transition: transform 0.1s ease; /* Smooth squish effect */
-            user-select: none;
-            -webkit-tap-highlight-color: transparent; /* Removes default blue tap highlight */
-        }
-
-        /* The Squish effect when pressed */
-        .tap-button:active {
-            transform: scale(0.92);
-        }
-
-        .score-text {
-            font-size: 48px;
+        h2 { text-align: center; margin-bottom: 20px; }
+        .menu-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 20px;
+            cursor: pointer;
         }
-
-        /* Floating +1 Animation CSS */
-        .floating-number {
-            position: absolute;
-            font-size: 24px;
-            font-weight: bold;
-            color: #4CAF50;
-            pointer-events: none; /* Let taps pass through to the button */
-            animation: floatUp 1s ease-out forwards;
+        .exercise {
+            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
-
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+        .exercise h3 { 
+            margin: 0 0 10px 0; 
+            font-size: 16px; 
+            color: var(--tg-theme-button-color, #3390ec);
         }
+        .set-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .set-inputs {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 8px;
+            border: 1px solid var(--tg-theme-hint-color, #ccc);
+            border-radius: 8px;
+            background-color: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
+            text-align: center;
+        }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="score-text" id="score">0 Reps</div>
-
-    <!-- Free Lottie Animation (Lightning Bolt Example) -->
-    <lottie-player 
-        src="https://assets2.lottiefiles.com/packages/lf20_jpxsxb1c.json" 
-        background="transparent" 
-        speed="1" 
-        style="width: 150px; height: 150px; position: absolute; top: 10%; z-index: -1;" 
-        loop 
-        autoplay>
-    </lottie-player>
-
-    <!-- The Main Tap Area -->
-    <div class="tap-button" id="mainTapArea">
-        <h2 style="margin:0; font-size: 24px;">TAP!</h2>
+    <!-- Home Screen -->
+    <div id="home-screen">
+        <h2>Choose Your Split</h2>
+        <button class="menu-btn" onclick="startDay('upper')">UPPER DAY</button>
+        <button class="menu-btn" onclick="startDay('lower')">LOWER DAY</button>
     </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Force full screen for native feel
-
-        let score = 0;
-        const tapArea = document.getElementById('mainTapArea');
-        const scoreDisplay = document.getElementById('score');
-
-        tapArea.addEventListener('pointerdown', function(event) {
-            // 1. Trigger native Telegram haptic feedback on every tap
-            tg.HapticFeedback.impactOccurred('heavy');
-
-            // 2. Update the score
-            score++;
-            scoreDisplay.innerText = score + " Reps";
-
-            // 3. Create the floating "+1" text at the exact tap coordinates
-            const floater = document.createElement('div');
-            floater.classList.add('floating-number');
-            floater.innerText = "+1";
-            
-            // Position it where the user's finger touched
-            floater.style.left = (event.clientX - 15) + 'px';
-            floater.style.top = (event.clientY - 20) + 'px';
-            
-            document.body.appendChild(floater);
-
-            // 4. Remove the floating element from the HTML after animation finishes
-            setTimeout(() => {
-                floater.remove();
-            }, 1000);
-        });
-
-        tg.ready();
-    </script>
-</body>
-</html>
+    <!-- Active Workout Screen -->
